@@ -1,3 +1,3 @@
 IM_SIZE = (48, 48)
-N_LABELS = 7
+MODELS_PATH = 'models/'
 LABELS = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
