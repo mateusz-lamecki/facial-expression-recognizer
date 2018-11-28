@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 from tensorflow.keras import models
 from PIL import Image, ImageDraw
 import numpy as np
@@ -36,16 +35,20 @@ def face_expression(model):
         # print(description)
         faces = get_faces(img_raw)
 
-        img_colored = Image.fromarray(img_raw);
+        img_colored = Image.fromarray(img_raw)
+        face_arr = 0
         for (x, y, w, h) in faces:
             ImageDraw.Draw(img_colored).rectangle([(x, y), (x + w, y + h)], fill=None, outline=(0, 255, 0))
-            face_arr = img_raw_bw[x:x+w][y:y+h]
+            face_arr = img_raw_bw[y:y+h, x:x+w]
+            print(np.shape(face_arr))
             face_arr = Image.fromarray(face_arr, 'L')
             img_resized = face_arr.resize((48, 48), Image.ANTIALIAS)
             X = (np.array(img_resized) / 255.).reshape(1, *IM_SIZE, 1)
             y_hat = model.predict(X)
             description = LABELS[y_hat.argmax()] + ' ' + str(y_hat.max() * 100) + '%'
             ImageDraw.Draw(img_colored).text((x+w, y), description, (255, 255, 255))
+            face_arr = np.array(face_arr).astype(np.uint8)
+            cv2.imshow('Face expression2', face_arr)
 
         open_cv_image = np.array(img_colored).astype(np.uint8)
         cv2.imshow('Face expression', open_cv_image)
