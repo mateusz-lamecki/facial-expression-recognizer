@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 
 from tensorflow.keras import models
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 import numpy as np
 import cv2
 
 from common import MODELS_PATH, IM_SIZE, LABELS
+import utils
 
 FRAMES_COLOR = (50, 25, 150)
 
@@ -19,18 +20,24 @@ def get_faces(image_gray, face_cascade):
                                           flags=cv2.CASCADE_SCALE_IMAGE)
     return faces
 
-def group_faces(faces):
+def group_faces(faces, img_shape):
     ''' Splits face frames into left and right subsets
     Requires faces returned by face cascade akgirithm from OpenCV '''
     left, right = [], []
 
-    print(faces)
+    for face in faces:
+        if (face[0]+face[2]//2) < img_shape[0]//2:
+            left.append(face)
+        else:
+            right.append(face)
+
+    return left, right
 
 def draw_game_shapes(img, faces):
     ''' Draws game shapes
     Requires np.array on input '''
 
-    group_faces(faces)
+    left, right = group_faces(faces, img.shape)
 
     cv2.line(img,
              (img.shape[1]//2, 0),
@@ -60,11 +67,8 @@ def draw_labels(img_raw, face_cascade):
         predicted_label = LABELS[y_hat.argmax()]
         certainty = int(np.round(y_hat.max() * 100, -1))
         description = predicted_label + ' ' + str(certainty) + '%'
-        font = ImageFont.truetype('UbuntuMono-R.ttf', 18)
-        ImageDraw.Draw(img_colored).text((x+w, y),
-                                         description,
-                                         FRAMES_COLOR,
-                                         font=font)
+        img_colored = utils.draw_text(img_colored, description, (x+w, y),
+                                      FRAMES_COLOR,right_side=False)
 
     img_colored = np.array(img_colored).astype(np.uint8)
     img_colored = draw_game_shapes(img_colored, faces)
