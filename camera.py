@@ -19,6 +19,27 @@ def get_faces(image_gray, face_cascade):
                                           flags=cv2.CASCADE_SCALE_IMAGE)
     return faces
 
+def group_faces(faces):
+    ''' Splits face frames into left and right subsets
+    Requires faces returned by face cascade akgirithm from OpenCV '''
+    left, right = [], []
+
+    print(faces)
+
+def draw_game_shapes(img, faces):
+    ''' Draws game shapes
+    Requires np.array on input '''
+
+    group_faces(faces)
+
+    cv2.line(img,
+             (img.shape[1]//2, 0),
+             (img.shape[1]//2, img.shape[1]),
+             FRAMES_COLOR, 3)
+
+    return img
+
+
 def draw_labels(img_raw, face_cascade):
     img_raw_bw = np.dot(img_raw[..., :3],
                         [0.299, 0.587, 0.114]).astype(np.uint8)
@@ -29,7 +50,7 @@ def draw_labels(img_raw, face_cascade):
     for (x, y, w, h) in faces:
         ImageDraw.Draw(img_colored).rectangle([(x, y), (x + w, y + h)],
                                               fill=None,
-                                              outline=(0, 255, 0))
+                                              outline=FRAMES_COLOR)
         face_arr = img_raw_bw[y:y+h, x:x+w]
         face_arr = Image.fromarray(face_arr, 'L')
         img_resized = face_arr.resize((48, 48), Image.ANTIALIAS)
@@ -46,12 +67,7 @@ def draw_labels(img_raw, face_cascade):
                                          font=font)
 
     img_colored = np.array(img_colored).astype(np.uint8)
-    cv2.line(img_colored,
-             (img_raw.shape[1]//2, 0),
-             (img_raw.shape[1]//2, img_raw.shape[1]),
-             FRAMES_COLOR, 3)
-
-
+    img_colored = draw_game_shapes(img_colored, faces)
     img_colored = cv2.resize(img_colored, (1280, 960), cv2.INTER_CUBIC)
 
     return img_colored
