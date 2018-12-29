@@ -7,23 +7,23 @@ import cv2
 
 from common import MODELS_PATH, IM_SIZE, LABELS
 
+FRAMES_COLOR = (50, 25, 150)
+
 
 def get_faces(image_gray, face_cascade):
     ''' Detect faces in the photo '''
     faces = face_cascade.detectMultiScale(image_gray,
                                           scaleFactor=1.1,
-                                          minNeighbors=5,
+                                          minNeighbors=8,
                                           minSize=(30, 30),
                                           flags=cv2.CASCADE_SCALE_IMAGE)
-    print(len(faces))
-
     return faces
 
 def draw_labels(img_raw, face_cascade):
     img_raw_bw = np.dot(img_raw[..., :3],
                         [0.299, 0.587, 0.114]).astype(np.uint8)
-    img_colored = Image.fromarray(img_raw)
 
+    img_colored = Image.fromarray(img_raw)
     faces = get_faces(img_raw_bw, face_cascade)
 
     for (x, y, w, h) in faces:
@@ -42,10 +42,16 @@ def draw_labels(img_raw, face_cascade):
         font = ImageFont.truetype('UbuntuMono-R.ttf', 18)
         ImageDraw.Draw(img_colored).text((x+w, y),
                                          description,
-                                         (255, 255, 255),
+                                         FRAMES_COLOR,
                                          font=font)
 
     img_colored = np.array(img_colored).astype(np.uint8)
+    cv2.line(img_colored,
+             (img_raw.shape[1]//2, 0),
+             (img_raw.shape[1]//2, img_raw.shape[1]),
+             FRAMES_COLOR, 3)
+
+
     img_colored = cv2.resize(img_colored, (1280, 960), cv2.INTER_CUBIC)
 
     return img_colored
