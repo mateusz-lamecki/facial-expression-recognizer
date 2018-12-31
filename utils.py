@@ -40,7 +40,6 @@ def plot_confusion_matrix(cm, classes,
 
 
 def draw_text(img, label, position, color, right_side=True, text_size=10):
-    print(position)
     font = ImageFont.truetype('UbuntuMono-R.ttf', text_size)
     if not right_side:
         position = (position[0]-font.getsize(label)[0], position[1])
@@ -49,3 +48,9 @@ def draw_text(img, label, position, color, right_side=True, text_size=10):
 
     ImageDraw.Draw(img).text(position, label, color, font=font)
     return img
+
+def print_player_status(img, n_faces, score, color, left_player=True):
+    label = 'Wykryto: ' + str(n_faces)
+    pos = 0 if left_player else img.size[0]
+    return draw_text(img, label, (pos, 0), color,
+                     right_side=(left_player))

@@ -8,7 +8,7 @@ import cv2
 from common import MODELS_PATH, IM_SIZE, LABELS
 import utils
 
-FRAMES_COLOR = (50, 25, 150)
+FRAMES_COLOR = (250, 25, 0)
 
 
 def get_faces(image_gray, face_cascade):
@@ -35,9 +35,15 @@ def group_faces(faces, img_shape):
 
 def draw_game_shapes(img, faces):
     ''' Draws game shapes
-    Requires np.array on input '''
+    Requires PIL.Image on input
+    Returns image as np.array '''
 
-    left, right = group_faces(faces, img.shape)
+    left, right = group_faces(faces, img.size)
+
+    img = utils.print_player_status(img, len(left), 0, FRAMES_COLOR, True)
+    img = utils.print_player_status(img, len(right), 0, FRAMES_COLOR, False)
+
+    img= np.array(img).astype(np.uint8)
 
     cv2.line(img,
              (img.shape[1]//2, 0),
@@ -48,6 +54,7 @@ def draw_game_shapes(img, faces):
 
 
 def draw_labels(img_raw, face_cascade):
+    img_raw = np.flip(img_raw, axis=1)
     img_raw_bw = np.dot(img_raw[..., :3],
                         [0.299, 0.587, 0.114]).astype(np.uint8)
 
@@ -70,7 +77,6 @@ def draw_labels(img_raw, face_cascade):
         img_colored = utils.draw_text(img_colored, description, (x+w, y),
                                       FRAMES_COLOR,right_side=False)
 
-    img_colored = np.array(img_colored).astype(np.uint8)
     img_colored = draw_game_shapes(img_colored, faces)
     img_colored = cv2.resize(img_colored, (1280, 960), cv2.INTER_CUBIC)
 
