@@ -51,9 +51,10 @@ class Game:
         faces_left, faces_right = utils.group_faces(faces, img_raw.size)
         faces_both = [(x, 0) for x in faces_left] + [(x, 1) for x in
                                                      faces_right]
-                                                     
 
-        for (x, y, w, h) in faces:
+        expression_i = LABELS.index(expression)
+
+        for (x, y, w, h) in faces_both:
             ImageDraw.Draw(img_colored).rectangle([(x, y), (x + w, y + h)],
                                                   fill=None,
                                                   outline=self.FRAMES_COLOR)
@@ -63,11 +64,9 @@ class Game:
             X = (np.array(img_resized) / 255.).reshape(1, *IM_SIZE, 1)
 
             y_hat = self.model.predict(X)
-            predicted_label = LABELS[y_hat.argmax()]
-            certainty = int(np.round(y_hat.max() * 100, -1))
-            description = predicted_label + ' ' + str(certainty) + '%'
-            img_colored = utils.draw_text(img_colored, description, (x+w, y),
-                                          self.FRAMES_COLOR,right_side=False)
+            certainty = str(int(np.round(y_hat[expression_i] * 100, -1))) + '%'
+            img_colored = utils.draw_text(img_colored, certainty, (x+w, y),
+                                          self.FRAMES_COLOR, right_side=False)
 
         img_colored = self.__draw_game_shapes(img_colored, faces, expression)
         img_colored = cv2.resize(img_colored, (1280, 960), cv2.INTER_CUBIC)
