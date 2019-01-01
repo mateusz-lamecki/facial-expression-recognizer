@@ -10,7 +10,7 @@ import utils
 
 
 class Game:
-    FRAMES_COLOR = (250, 25, 0)
+    FRAMES_COLOR = (255, 255, 255)
     SECS_PER_EXPRESSION = 10
     CERTAINTY_THRES = .3
 
@@ -70,7 +70,8 @@ class Game:
             certainty = int(np.round(y_hat[expression_i] * 100, -1))
             certainty_str = str(certainty) + '%'
             img_colored = utils.draw_text(img_colored, certainty_str, (x+w, y),
-                                          self.FRAMES_COLOR, right_side=False)
+                                          self.FRAMES_COLOR, right_side=False,
+                                          text_size=w//20)
 
             if certainty >= self.CERTAINTY_THRES:
                 points_new[player] += certainty
@@ -94,6 +95,17 @@ class Game:
         HEADER_HEIGHT = 30
 
         left, right = utils.group_faces(faces, img.size)
+
+        img = np.array(img).astype(np.uint8)
+
+        img_with_box = img.copy()
+        cv2.rectangle(img_with_box,
+                      (0, 0),
+                      (img.shape[1], HEADER_HEIGHT),
+                      (0, 0, 0), -1)
+        cv2.addWeighted(img_with_box, .5, img, .5, 0, img)
+
+        img = Image.fromarray(img)
 
         for i, x in enumerate([left, right]):
             img = utils.print_player_status(img, len(x), self.points[i],
