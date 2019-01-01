@@ -1,5 +1,6 @@
 from timeit import default_timer as timer
 import random
+import sys
 
 from PIL import Image, ImageDraw
 import numpy as np
@@ -13,6 +14,7 @@ class Game:
     FRAMES_COLOR = (255, 255, 255)
     SECS_PER_EXPRESSION = 10
     CERTAINTY_THRES = .3
+    RESOLUTION = (1280, 960)
 
     def __init__(self, model, face_cascade):
         self.model = model
@@ -31,13 +33,17 @@ class Game:
 
             img_with_labels = self.__game_frame(img_raw, choices[n_label])
             cv2.imshow('Face expression', img_with_labels)
-            if cv2.waitKey(1) == 27: 
-                break
+            if cv2.waitKey(1) == 27:
+                sys.exit(0)
 
             if timer()-last_time > self.SECS_PER_EXPRESSION:
                 last_time = timer()
                 n_label += 1
 
+        cv2.destroyAllWindows()
+
+        winner = self.points[0] < self.points[1]
+        self.__show_winner(winner)
 
         cv2.destroyAllWindows()
 
@@ -82,7 +88,7 @@ class Game:
             self.points[i] += points_new[i] / 10
 
         img_colored = self.__draw_game_shapes(img_colored, faces, expression)
-        img_colored = cv2.resize(img_colored, (1280, 960), cv2.INTER_CUBIC)
+        img_colored = cv2.resize(img_colored, self.RESOLUTION, cv2.INTER_CUBIC)
 
         return img_colored
 
@@ -127,3 +133,17 @@ class Game:
 
         return img
 
+    def __show_winner(self, winner):
+        while True:
+            if cv2.waitKey(1) == 27: 
+                break
+
+            img = Image.new('RGB', self.RESOLUTION)
+            label = 'Wygrał gracz ' + ('lewy' if winner == 0 else 'prawy')
+            img = utils.draw_text(img, label, (self.RESOLUTION[0]//2,
+                                               self.RESOLUTION[1]//2),
+                                  (255, 255, 255), center=True, text_size=50)
+
+            img = np.array(img).astype(np.uint8)
+
+            cv2.imshow('And the winner is...', img)
