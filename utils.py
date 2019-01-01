@@ -51,8 +51,33 @@ def draw_text(img, label, position, color, right_side=True, center=False,
     ImageDraw.Draw(img).text(position, label, color, font=font)
     return img
 
+
 def print_player_status(img, n_faces, score, color, left_player=True):
     label = 'Wykryto: ' + str(n_faces)
     pos = 0 if left_player else img.size[0]
     return draw_text(img, label, (pos, 0), color,
                      right_side=(left_player))
+
+
+def get_faces(image_gray, face_cascade):
+    ''' Detect faces in the photo '''
+    faces = face_cascade.detectMultiScale(image_gray,
+                                          scaleFactor=1.1,
+                                          minNeighbors=8,
+                                          minSize=(30, 30),
+                                          flags=cv2.CASCADE_SCALE_IMAGE)
+    return faces
+
+
+def group_faces(faces, img_shape):
+    ''' Splits face frames into left and right subsets
+    Requires faces returned by face cascade akgirithm from OpenCV '''
+    left, right = [], []
+
+    for face in faces:
+        if (face[0]+face[2]//2) < img_shape[0]//2:
+            left.append(face)
+        else:
+            right.append(face)
+
+    return left, right
