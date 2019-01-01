@@ -33,27 +33,36 @@ def group_faces(faces, img_shape):
 
     return left, right
 
-def draw_game_shapes(img, faces):
+def draw_game_shapes(img, faces, expression):
     ''' Draws game shapes
     Requires PIL.Image on input
     Returns image as np.array '''
+
+    HEADER_HEIGHT = 30
 
     left, right = group_faces(faces, img.size)
 
     img = utils.print_player_status(img, len(left), 0, FRAMES_COLOR, True)
     img = utils.print_player_status(img, len(right), 0, FRAMES_COLOR, False)
 
-    img= np.array(img).astype(np.uint8)
+    img = utils.draw_text(img, expression, (img.size[0]//2, 0), FRAMES_COLOR,
+                          center=True, text_size=20)
+    img = np.array(img).astype(np.uint8)
 
     cv2.line(img,
-             (img.shape[1]//2, 0),
+             (0, HEADER_HEIGHT),
+             (img.shape[1], HEADER_HEIGHT),
+             FRAMES_COLOR, 3)
+
+    cv2.line(img,
+             (img.shape[1]//2, HEADER_HEIGHT),
              (img.shape[1]//2, img.shape[1]),
              FRAMES_COLOR, 3)
 
     return img
 
 
-def draw_labels(img_raw, face_cascade):
+def game_frame(img_raw, face_cascade, expression):
     img_raw = np.flip(img_raw, axis=1)
     img_raw_bw = np.dot(img_raw[..., :3],
                         [0.299, 0.587, 0.114]).astype(np.uint8)
@@ -77,13 +86,13 @@ def draw_labels(img_raw, face_cascade):
         img_colored = utils.draw_text(img_colored, description, (x+w, y),
                                       FRAMES_COLOR,right_side=False)
 
-    img_colored = draw_game_shapes(img_colored, faces)
+    img_colored = draw_game_shapes(img_colored, faces, expression)
     img_colored = cv2.resize(img_colored, (1280, 960), cv2.INTER_CUBIC)
 
     return img_colored
 
 
-def face_expression(model, face_cascade):
+def game_loop(model, face_cascade):
     ''' Recognizes human faces and predicts face expressions '''
     cam = cv2.VideoCapture(0)
 
@@ -91,7 +100,7 @@ def face_expression(model, face_cascade):
         # Read image from camera
         ret_val, img_raw = cam.read()
 
-        img_with_labels = draw_labels(img_raw, face_cascade)
+        img_with_labels = game_frame(img_raw, face_cascade, 'Smile')
         cv2.imshow('Face expression', img_with_labels)
         if cv2.waitKey(1) == 27: 
             break
@@ -107,4 +116,4 @@ if __name__ == '__main__':
     casc_path = MODELS_PATH + 'haarcascade_frontalface_default.xml'
     face_cascade = cv2.CascadeClassifier(casc_path)
 
-    face_expression(model, face_cascade)
+    game_loop(model, face_cascade)
