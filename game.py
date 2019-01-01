@@ -11,7 +11,8 @@ import utils
 
 class Game:
     FRAMES_COLOR = (250, 25, 0)
-    SECS_PER_EXPRESSION = 5
+    SECS_PER_EXPRESSION = 10
+    CERTAINTY_THRES = .3
 
     def __init__(self, model, face_cascade):
         self.model = model
@@ -48,13 +49,15 @@ class Game:
 
         img_colored = Image.fromarray(img_raw)
         faces = utils.get_faces(img_raw_bw, self.face_cascade)
-        faces_left, faces_right = utils.group_faces(faces, img_raw.size)
+        faces_left, faces_right = utils.group_faces(faces, img_colored.size)
         faces_both = [(x, 0) for x in faces_left] + [(x, 1) for x in
                                                      faces_right]
 
         expression_i = LABELS.index(expression)
 
-        for (x, y, w, h) in faces_both:
+        points_new = [0, 0]
+
+        for (x, y, w, h), player in faces_both:
             ImageDraw.Draw(img_colored).rectangle([(x, y), (x + w, y + h)],
                                                   fill=None,
                                                   outline=self.FRAMES_COLOR)
@@ -63,10 +66,19 @@ class Game:
             img_resized = face_arr.resize((48, 48), Image.ANTIALIAS)
             X = (np.array(img_resized) / 255.).reshape(1, *IM_SIZE, 1)
 
-            y_hat = self.model.predict(X)
-            certainty = str(int(np.round(y_hat[expression_i] * 100, -1))) + '%'
-            img_colored = utils.draw_text(img_colored, certainty, (x+w, y),
+            y_hat = self.model.predict(X).ravel()
+            certainty = int(np.round(y_hat[expression_i] * 100, -1))
+            certainty_str = str(certainty) + '%'
+            img_colored = utils.draw_text(img_colored, certainty_str, (x+w, y),
                                           self.FRAMES_COLOR, right_side=False)
+
+            if certainty >= self.CERTAINTY_THRES:
+                points_new[player] += certainty
+
+        for i, x in enumerate([faces_left, faces_right]):
+            if len(x) > 0:
+                points_new[i] /= len(x)
+            self.points[i] += points_new[i] / 10
 
         img_colored = self.__draw_game_shapes(img_colored, faces, expression)
         img_colored = cv2.resize(img_colored, (1280, 960), cv2.INTER_CUBIC)
@@ -83,10 +95,9 @@ class Game:
 
         left, right = utils.group_faces(faces, img.size)
 
-        img = utils.print_player_status(img, len(left), 0, self.FRAMES_COLOR,
-                                        True)
-        img = utils.print_player_status(img, len(right), 0, self.FRAMES_COLOR,
-                                        False)
+        for i, x in enumerate([left, right]):
+            img = utils.print_player_status(img, len(x), self.points[i],
+                                            self.FRAMES_COLOR, (i == 0))
 
         img = utils.draw_text(img, expression, (img.size[0]//2, 0),
                               self.FRAMES_COLOR, center=True, text_size=20)

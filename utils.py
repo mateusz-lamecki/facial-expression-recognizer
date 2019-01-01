@@ -44,16 +44,17 @@ def draw_text(img, label, position, color, right_side=True, center=False,
     ''' Draws text on PIL.Image object '''
     font = ImageFont.truetype('UbuntuMono-R.ttf', text_size)
     if center:
-        position = (position[0]-font.getsize(label)[0]//2, position[1])
+        position = (position[0]-font.getsize_multiline(label)[0]//2, position[1])
     elif not right_side:
-        position = (position[0]-font.getsize(label)[0], position[1])
+        position = (position[0]-font.getsize_multiline(label)[0], position[1])
 
     ImageDraw.Draw(img).text(position, label, color, font=font)
     return img
 
 
 def print_player_status(img, n_faces, score, color, left_player=True):
-    label = 'Wykryto: ' + str(n_faces) + '\n' + str(score) + ' punktów'
+    score_str = str(int(np.round(score)))
+    label = 'Wykryto: ' + str(n_faces) + '\n' + str(score_str) + ' punktów'
     pos = 0 if left_player else img.size[0]
     return draw_text(img, label, (pos, 0), color,
                      right_side=(left_player))
