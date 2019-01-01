@@ -53,7 +53,7 @@ def draw_text(img, label, position, color, right_side=True, center=False,
 
 
 def print_player_status(img, n_faces, score, color, left_player=True):
-    label = 'Wykryto: ' + str(n_faces)
+    label = 'Wykryto: ' + str(n_faces) + '\n' + str(score) + ' punktów'
     pos = 0 if left_player else img.size[0]
     return draw_text(img, label, (pos, 0), color,
                      right_side=(left_player))
