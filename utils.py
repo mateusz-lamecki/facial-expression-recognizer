@@ -82,3 +82,14 @@ def group_faces(faces, img_shape):
             right.append(face)
 
     return left, right
+
+
+class SmilesState:
+    def __init__(self, faces, faces_left, faces_right, faces_both, y_hat=None):
+        if y_hat is None:
+            y_hat = []
+        self.faces = faces
+        self.faces_left = faces_left
+        self.faces_right = faces_right
+        self.faces_both = faces_both
+        self.y_hat = y_hat

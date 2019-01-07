@@ -15,6 +15,7 @@ class Game:
     SECS_PER_EXPRESSION = 10
     CERTAINTY_THRES = .3
     RESOLUTION = (1280, 960)
+    FRAMES_PER_SMILE_EVAL = 30
 
     def __init__(self, model, face_cascade):
         self.model = model
@@ -27,11 +28,14 @@ class Game:
         last_time = timer()
         choices = sorted(LABELS, key=lambda x: random.random())
         n_label = 0
+        i = 0
 
         while n_label < len(choices):
             ret_val, img_raw = cam.read()
 
-            img_with_labels = self.__game_frame(img_raw, choices[n_label])
+            smile_eval = (i%self.FRAMES_PER_SMILE_EVAL == 0)
+            img_with_labels = self.__game_frame(img_raw, choices[n_label],
+                                                smile_eval)
             cv2.imshow('Face expression', img_with_labels)
             if cv2.waitKey(1) == 27:
                 sys.exit(0)
@@ -39,6 +43,8 @@ class Game:
             if timer()-last_time > self.SECS_PER_EXPRESSION:
                 last_time = timer()
                 n_label += 1
+
+            i += 1
 
         cv2.destroyAllWindows()
 
@@ -48,32 +54,41 @@ class Game:
         cv2.destroyAllWindows()
 
 
-    def __game_frame(self, img_raw, expression):
+    def __game_frame(self, img_raw, expression, smile_eval):
         img_raw = np.flip(img_raw, axis=1)
         img_raw_bw = np.dot(img_raw[..., :3],
                             [0.299, 0.587, 0.114]).astype(np.uint8)
 
         img_colored = Image.fromarray(img_raw)
-        faces = utils.get_faces(img_raw_bw, self.face_cascade)
-        faces_left, faces_right = utils.group_faces(faces, img_colored.size)
-        faces_both = [(x, 0) for x in faces_left] + [(x, 1) for x in
-                                                     faces_right]
+
+        if smile_eval:
+            faces = utils.get_faces(img_raw_bw, self.face_cascade)
+            faces_left, faces_right = utils.group_faces(faces, img_colored.size)
+            faces_both = [(x, 0) for x in faces_left] + [(x, 1) for x in
+                                                         faces_right]
+            self.prev_state = utils.SmilesState(faces, faces_left,
+                                                faces_right, faces_both)
+        else:
+            prev_state = self.prev_state
 
         expression_i = LABELS.index(expression)
 
         points_new = [0, 0]
 
-        for (x, y, w, h), player in faces_both:
+        for i, ((x, y, w, h), player) in enumerate(self.prev_state.faces_both):
             ImageDraw.Draw(img_colored).rectangle([(x, y), (x + w, y + h)],
                                                   fill=None,
                                                   outline=self.FRAMES_COLOR)
-            face_arr = img_raw_bw[y:y+h, x:x+w]
-            face_arr = Image.fromarray(face_arr, 'L')
-            img_resized = face_arr.resize((48, 48), Image.ANTIALIAS)
-            X = (np.array(img_resized) / 255.).reshape(1, *IM_SIZE, 1)
+            if smile_eval:
+                face_arr = img_raw_bw[y:y+h, x:x+w]
+                face_arr = Image.fromarray(face_arr, 'L')
+                img_resized = face_arr.resize((48, 48), Image.ANTIALIAS)
+                X = (np.array(img_resized) / 255.).reshape(1, *IM_SIZE, 1)
 
-            y_hat = self.model.predict(X).ravel()
-            certainty = int(np.round(y_hat[expression_i] * 100, -1))
+                y_hat = self.model.predict(X).ravel()
+                self.prev_state.y_hat.append(y_hat)
+            
+            certainty = int(np.round(self.prev_state.y_hat[i][expression_i] * 100, -1))
             certainty_str = str(certainty) + '%'
             img_colored = utils.draw_text(img_colored, certainty_str, (x+w, y),
                                           self.FRAMES_COLOR, right_side=False,
@@ -82,12 +97,12 @@ class Game:
             if certainty >= self.CERTAINTY_THRES:
                 points_new[player] += certainty
 
-        for i, x in enumerate([faces_left, faces_right]):
+        for i, x in enumerate([self.prev_state.faces_left, self.prev_state.faces_right]):
             if len(x) > 0:
                 points_new[i] /= len(x)
             self.points[i] += points_new[i] / 10
 
-        img_colored = self.__draw_game_shapes(img_colored, faces, expression)
+        img_colored = self.__draw_game_shapes(img_colored, self.prev_state.faces, expression)
         img_colored = cv2.resize(img_colored, self.RESOLUTION, cv2.INTER_CUBIC)
 
         return img_colored
