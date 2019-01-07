@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from tensorflow.keras import models
+from keras import models
 import cv2
 
 from common import MODELS_PATH

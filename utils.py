@@ -42,7 +42,7 @@ def plot_confusion_matrix(cm, classes,
 def draw_text(img, label, position, color, right_side=True, center=False,
               text_size=10):
     ''' Draws text on PIL.Image object '''
-    font = ImageFont.truetype('UbuntuMono-R.ttf', text_size)
+    font = ImageFont.truetype('DejaVuSans.ttf', text_size)
     if center:
         position = (position[0]-font.getsize_multiline(label)[0]//2, position[1])
     elif not right_side:
