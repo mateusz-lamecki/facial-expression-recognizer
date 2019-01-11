@@ -39,7 +39,13 @@ class Game:
             smile_eval = (i%self.FRAMES_PER_SMILE_EVAL == 0)
             img_with_labels = self.__game_frame(img_raw, choices[n_label],
                                                 smile_eval)
-            cv2.imshow('Face expression', img_with_labels)
+
+            cv2.namedWindow('window', cv2.WND_PROP_FULLSCREEN)
+            cv2.setWindowProperty('window', cv2.WND_PROP_FULLSCREEN,
+                                  cv2.WINDOW_FULLSCREEN)
+
+            cv2.imshow('window', img_with_labels)
+
             if cv2.waitKey(1) == 27:
                 sys.exit(0)
 
