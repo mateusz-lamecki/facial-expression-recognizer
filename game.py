@@ -12,10 +12,10 @@ import utils
 
 class Game:
     FRAMES_COLOR = (255, 255, 255)
-    SECS_PER_EXPRESSION = 10
+    SECS_PER_EXPRESSION = 15
     CERTAINTY_THRES = .3
-    RESOLUTION = (1280, 960)
-    FRAMES_PER_SMILE_EVAL = 30
+    RESOLUTION = (480, 320)
+    FRAMES_PER_SMILE_EVAL = 20
 
     def __init__(self, model, face_cascade):
         self.model = model
@@ -32,6 +32,9 @@ class Game:
 
         while n_label < len(choices):
             ret_val, img_raw = cam.read()
+            img_raw = cv2.resize(img_raw, dsize=self.RESOLUTION,
+                                 interpolation=cv2.INTER_CUBIC)
+
 
             smile_eval = (i%self.FRAMES_PER_SMILE_EVAL == 0)
             img_with_labels = self.__game_frame(img_raw, choices[n_label],
@@ -103,7 +106,6 @@ class Game:
             self.points[i] += points_new[i] / 10
 
         img_colored = self.__draw_game_shapes(img_colored, self.prev_state.faces, expression)
-        img_colored = cv2.resize(img_colored, self.RESOLUTION, cv2.INTER_CUBIC)
 
         return img_colored
 
