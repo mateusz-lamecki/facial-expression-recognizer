@@ -12,15 +12,20 @@ import utils
 
 class Game:
     FRAMES_COLOR = (255, 255, 255)
-    SECS_PER_EXPRESSION = 15
+    SECS_PER_EXPRESSION = 12
     CERTAINTY_THRES = .3
     RESOLUTION = (480, 320)
     FRAMES_PER_SMILE_EVAL = 5
+    GAME_TITLE = 'Nieszczere emocje - gra'
 
     def __init__(self, model, face_cascade):
         self.model = model
         self.face_cascade = face_cascade
         self.points = [0, 0]
+
+        cv2.namedWindow(self.GAME_TITLE, cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty(self.GAME_TITLE, cv2.WND_PROP_FULLSCREEN,
+                              cv2.WINDOW_FULLSCREEN)
 
     def run(self):
         cam = cv2.VideoCapture(0)
@@ -34,7 +39,6 @@ class Game:
 
         while n_label < len(choices):
             ret_val, img_raw = cam.read()
-            print(img_raw.shape)
             img_raw = cv2.resize(img_raw, dsize=self.RESOLUTION,
                                  interpolation=cv2.INTER_CUBIC)
 
@@ -43,11 +47,7 @@ class Game:
             img_with_labels = self.__game_frame(img_raw, choices[n_label],
                                                 smile_eval)
 
-            cv2.namedWindow('window', cv2.WND_PROP_FULLSCREEN)
-            cv2.setWindowProperty('window', cv2.WND_PROP_FULLSCREEN,
-                                  cv2.WINDOW_FULLSCREEN)
-
-            cv2.imshow('window', img_with_labels)
+            cv2.imshow(self.GAME_TITLE, img_with_labels)
 
             if cv2.waitKey(1) == 27:
                 sys.exit(0)
@@ -160,16 +160,24 @@ class Game:
         return img
 
     def __show_winner(self, winner):
+        winner_window_title = 'And the winner is...'
+
         while True:
-            if cv2.waitKey(1) == 27: 
+            key = cv2.waitKey(1)
+            if key == 27:
+                sys.exit(0)
+            elif key == 32: 
                 break
 
             img = Image.new('RGB', self.RESOLUTION)
             label = 'Wygrał gracz ' + ('lewy' if winner == 0 else 'prawy')
-            img = utils.draw_text(img, label, (self.RESOLUTION[0],
-                                               self.RESOLUTION[1]),
-                                  (255, 255, 255), center=True, text_size=50)
+            img = utils.draw_text(img, label, (self.RESOLUTION[0]//2,
+                                               self.RESOLUTION[1]//2),
+                                  (255, 255, 255), center=True, text_size=25)
 
             img = np.array(img).astype(np.uint8)
 
-            cv2.imshow('And the winner is...', img)
+            cv2.namedWindow(winner_window_title, cv2.WND_PROP_FULLSCREEN)
+            cv2.setWindowProperty(winner_window_title, cv2.WND_PROP_FULLSCREEN,
+                              cv2.WINDOW_FULLSCREEN)
+            cv2.imshow(winner_window_title, img)
