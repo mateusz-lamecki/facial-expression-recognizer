@@ -23,7 +23,9 @@ class Game:
         self.points = [0, 0]
 
     def run(self):
-        cam = cv2.VideoCapture(0)
+        cam = cv2.VideoCapture(1)
+        cam.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
+        cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 320)
 
         last_time = timer()
         choices = sorted(LABELS, key=lambda x: random.random())
