@@ -15,7 +15,7 @@ class Game:
     SECS_PER_EXPRESSION = 15
     CERTAINTY_THRES = .3
     RESOLUTION = (480, 320)
-    FRAMES_PER_SMILE_EVAL = 20
+    FRAMES_PER_SMILE_EVAL = 5
 
     def __init__(self, model, face_cascade):
         self.model = model
@@ -23,9 +23,9 @@ class Game:
         self.points = [0, 0]
 
     def run(self):
-        cam = cv2.VideoCapture(1)
-        cam.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
-        cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 320)
+        cam = cv2.VideoCapture(0)
+        cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.RESOLUTION[0]//2)
+        cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.RESOLUTION[1]//2)
 
         last_time = timer()
         choices = sorted(LABELS, key=lambda x: random.random())
@@ -34,6 +34,7 @@ class Game:
 
         while n_label < len(choices):
             ret_val, img_raw = cam.read()
+            print(img_raw.shape)
             img_raw = cv2.resize(img_raw, dsize=self.RESOLUTION,
                                  interpolation=cv2.INTER_CUBIC)
 
@@ -165,8 +166,8 @@ class Game:
 
             img = Image.new('RGB', self.RESOLUTION)
             label = 'Wygrał gracz ' + ('lewy' if winner == 0 else 'prawy')
-            img = utils.draw_text(img, label, (self.RESOLUTION[0]//2,
-                                               self.RESOLUTION[1]//2),
+            img = utils.draw_text(img, label, (self.RESOLUTION[0],
+                                               self.RESOLUTION[1]),
                                   (255, 255, 255), center=True, text_size=50)
 
             img = np.array(img).astype(np.uint8)
