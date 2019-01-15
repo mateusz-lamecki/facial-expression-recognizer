@@ -9,6 +9,9 @@ import cv2
 from common import IM_SIZE, LABELS
 import utils
 
+PLAYER1_LED = 37
+PLAYER2_LED = 35
+
 
 class Game:
     FRAMES_COLOR = (255, 255, 255)
@@ -18,10 +21,19 @@ class Game:
     FRAMES_PER_SMILE_EVAL = 5
     GAME_TITLE = 'Nieszczere emocje - gra'
 
-    def __init__(self, model, face_cascade):
+    def __init__(self, model, face_cascade, rpi_only):
         self.model = model
         self.face_cascade = face_cascade
         self.points = [0, 0]
+        self.rpi_only = rpi_only
+        self.prev_state = None
+        
+        if rpi_only:
+            ''' Setup - only in RPi mode '''
+            import RPi.GPIO as GPIO
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setup(PLAYER1_LED, GPIO.OUT)
+            GPIO.setup(PLAYER2_LED, GPIO.OUT)
 
         cv2.namedWindow(self.GAME_TITLE, cv2.WND_PROP_FULLSCREEN)
         cv2.setWindowProperty(self.GAME_TITLE, cv2.WND_PROP_FULLSCREEN,
@@ -66,6 +78,7 @@ class Game:
         cv2.destroyAllWindows()
 
 
+
     def __game_frame(self, img_raw, expression, smile_eval):
         img_raw = np.flip(img_raw, axis=1)
         img_raw_bw = np.dot(img_raw[..., :3],
@@ -78,6 +91,16 @@ class Game:
             faces_left, faces_right = utils.group_faces(faces, img_colored.size)
             faces_both = [(x, 0) for x in faces_left] + [(x, 1) for x in
                                                          faces_right]
+
+            if self.rpi_only and self.prev_state is not None:
+                ''' Control LEDs '''
+                import RPi.GPIO as GPIO
+                nonempty = lambda x: len(x) > 0
+                GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_left)
+                            else GPIO.LOW)
+                GPIO.output(PLAYER2_LED, GPIO.HIGH if nonempty(faces_right)
+                            else GPIO.LOW)
+
             self.prev_state = utils.SmilesState(faces, faces_left,
                                                 faces_right, faces_both)
         else:

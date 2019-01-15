@@ -15,5 +15,5 @@ if __name__ == '__main__':
     face_cascade = cv2.CascadeClassifier(casc_path)
 
     while True:
-        game = Game(model, face_cascade)
+        game = Game(model, face_cascade, rpi_only=False)
         game.run()
