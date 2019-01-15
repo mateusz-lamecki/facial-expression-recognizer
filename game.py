@@ -98,7 +98,7 @@ class Game:
                 nonempty = lambda x: len(x) > 0
                 GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_left)
                             else GPIO.LOW)
-                GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_right)
+                GPIO.output(PLAYER2_LED, GPIO.HIGH if nonempty(faces_right)
                             else GPIO.LOW)
 
             self.prev_state = utils.SmilesState(faces, faces_left,
