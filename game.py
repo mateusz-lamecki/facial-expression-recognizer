@@ -94,6 +94,7 @@ class Game:
 
             if self.rpi_only and self.prev_state is not None:
                 ''' Control LEDs '''
+                import RPi.GPIO as GPIO
                 nonempty = lambda x: len(x) > 0
                 GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_left)
                             else GPIO.LOW)
