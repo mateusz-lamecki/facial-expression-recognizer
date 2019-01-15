@@ -9,8 +9,8 @@ import cv2
 from common import IM_SIZE, LABELS
 import utils
 
-PLAYER1_LED = 35
-PLAYER2_LED = 37
+PLAYER1_LED = 37
+PLAYER2_LED = 35
 
 
 class Game:
