@@ -26,6 +26,7 @@ class Game:
         self.face_cascade = face_cascade
         self.points = [0, 0]
         self.rpi_only = rpi_only
+        self.prev_state = None
 
         cv2.namedWindow(self.GAME_TITLE, cv2.WND_PROP_FULLSCREEN)
         cv2.setWindowProperty(self.GAME_TITLE, cv2.WND_PROP_FULLSCREEN,
