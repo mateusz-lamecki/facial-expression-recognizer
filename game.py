@@ -89,10 +89,10 @@ class Game:
                 import RPi.GPIO as GPIO
 
                 nonempty = lambda x: len(x) > 0
-                if(nonempty(faces_left) != nomempty(self.prev_state.faces_left)):
+                if(nonempty(faces_left) != nonempty(self.prev_state.faces_left)):
                     GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_left)
                                 else GPIO.LOW)
-                if(nonempty(faces_right) != nomempty(self.prev_state.faces_right)):
+                if(nonempty(faces_right) != nonempty(self.prev_state.faces_right)):
                     GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_right)
                                 else GPIO.LOW)
 
