@@ -27,6 +27,13 @@ class Game:
         self.points = [0, 0]
         self.rpi_only = rpi_only
         self.prev_state = None
+        
+        if rpi_only:
+            ''' Setup - only in RPi mode '''
+            import RPi.GPIO as GPIO
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setup(PLAYER1_LED, GPIO.OUT)
+            GPIO.setup(PLAYER2_LED, GPIO.OUT)
 
         cv2.namedWindow(self.GAME_TITLE, cv2.WND_PROP_FULLSCREEN)
         cv2.setWindowProperty(self.GAME_TITLE, cv2.WND_PROP_FULLSCREEN,
@@ -87,8 +94,6 @@ class Game:
 
             if self.rpi_only and self.prev_state is not None:
                 ''' Control LEDs '''
-                import RPi.GPIO as GPIO
-
                 nonempty = lambda x: len(x) > 0
                 if(nonempty(faces_left) != nonempty(self.prev_state.faces_left)):
                     GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_left)
