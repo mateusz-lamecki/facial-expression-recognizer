@@ -84,7 +84,7 @@ class Game:
             faces_both = [(x, 0) for x in faces_left] + [(x, 1) for x in
                                                          faces_right]
 
-            if self.rpi_only:
+            if self.rpi_only and self.prev_state is not None:
                 ''' Control LEDs '''
                 import RPi.GPIO as GPIO
 
