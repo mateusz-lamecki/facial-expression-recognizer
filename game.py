@@ -95,13 +95,10 @@ class Game:
             if self.rpi_only and self.prev_state is not None:
                 ''' Control LEDs '''
                 nonempty = lambda x: len(x) > 0
-                if(nonempty(faces_left) != nonempty(self.prev_state.faces_left)):
-                    GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_left)
-                                else GPIO.LOW)
-                if(nonempty(faces_right) != nonempty(self.prev_state.faces_right)):
-                    GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_right)
-                                else GPIO.LOW)
-
+                GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_left)
+                            else GPIO.LOW)
+                GPIO.output(PLAYER1_LED, GPIO.HIGH if nonempty(faces_right)
+                            else GPIO.LOW)
 
             self.prev_state = utils.SmilesState(faces, faces_left,
                                                 faces_right, faces_both)
